@@ -1,6 +1,16 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
+const pinoLevels = [
+  'fatal',
+  'error',
+  'warn',
+  'info',
+  'debug',
+  'trace',
+  'silent',
+] as const;
+
 const envSchema = z
   .object({
     NODE_ENV: z
@@ -22,6 +32,13 @@ const envSchema = z
       .min(10, 'REFRESH_TOKEN_SECRET must be at least 10 characters'),
 
     BASE_URL: z.string().default('http://localhost:5000'),
+
+    LOG_LEVEL: z
+      .preprocess(
+        (val) => (typeof val === 'string' ? val.toLowerCase() : val),
+        z.enum(pinoLevels),
+      )
+      .default('info'),
   })
   .readonly();
 
