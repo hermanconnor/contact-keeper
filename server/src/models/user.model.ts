@@ -4,19 +4,22 @@ const userSchema = new Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, 'Name is required'],
+      minlength: [2, 'Name must be at least 2 characters long'],
+      maxlength: [70, 'Name must be fewer than 70 characters long'],
       trim: true,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Email is required'],
+      maxlength: [254, 'Email is too long'],
       unique: true,
       lowercase: true,
       trim: true,
     },
-    passwordHash: {
+    password: {
       type: String,
-      required: true,
+      required: [true, 'Password is required'],
       select: false,
     },
     refreshTokenHash: {
