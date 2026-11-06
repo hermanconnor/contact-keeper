@@ -16,7 +16,7 @@ app.use(requestLogger);
 app.use(express.json());
 
 // ROUTES
-app.use('/api/health', healthRoutes);
+app.use('/api/v1/health', healthRoutes);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);

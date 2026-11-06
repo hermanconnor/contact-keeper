@@ -1,0 +1,53 @@
+import { model, Schema, Types, type InferSchemaType } from 'mongoose';
+
+const refreshTokenSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'User ID is required'],
+      index: true,
+    },
+
+    familyId: {
+      type: String,
+      required: [true, 'Family ID is required'],
+      trim: true,
+      index: true,
+    },
+
+    tokenHash: {
+      type: String,
+      required: [true, 'Token hash is required'],
+      unique: true,
+      trim: true,
+    },
+
+    expiresAt: {
+      type: Date,
+      required: [true, 'Expiration date is required'],
+    },
+
+    revokedAt: {
+      type: Date,
+      default: null,
+    },
+
+    replacedBy: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+  },
+  { timestamps: true },
+);
+
+// TTL index to automatically delete expired tokens from MongoDB
+refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export type RefreshTokenType = InferSchemaType<typeof refreshTokenSchema>;
+
+export const RefreshToken = model<RefreshTokenType>(
+  'RefreshToken',
+  refreshTokenSchema,
+);
