@@ -31,6 +31,8 @@ const envSchema = z
       .string()
       .min(10, 'REFRESH_TOKEN_SECRET must be at least 10 characters'),
 
+    SESSION_LIFETIME_DAYS: z.coerce.number().int().min(1).max(365).default(7),
+
     BASE_URL: z.string().default('http://localhost:5000'),
 
     LOG_LEVEL: z

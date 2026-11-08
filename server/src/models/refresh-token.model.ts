@@ -1,4 +1,10 @@
-import { model, Schema, Types, type InferSchemaType } from 'mongoose';
+import {
+  model,
+  Schema,
+  Types,
+  type HydratedDocument,
+  type InferSchemaType,
+} from 'mongoose';
 
 const refreshTokenSchema = new Schema(
   {
@@ -46,6 +52,7 @@ const refreshTokenSchema = new Schema(
 refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export type RefreshTokenType = InferSchemaType<typeof refreshTokenSchema>;
+export type TokenDoc = HydratedDocument<RefreshTokenType>;
 
 export const RefreshToken = model<RefreshTokenType>(
   'RefreshToken',
