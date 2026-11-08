@@ -1,4 +1,10 @@
-import { model, Schema, Types, type InferSchemaType } from 'mongoose';
+import {
+  model,
+  Schema,
+  Types,
+  type HydratedDocument,
+  type InferSchemaType,
+} from 'mongoose';
 
 const userSchema = new Schema(
   {
@@ -31,9 +37,11 @@ const userSchema = new Schema(
 );
 
 export type UserType = InferSchemaType<typeof userSchema>;
-export type AuthenticatedUser = Pick<
-  UserType,
-  'name' | 'email' | 'createdAt' | 'updatedAt'
-> & { _id: Types.ObjectId };
+export type UserDoc = HydratedDocument<UserType>;
+
+export type PublicUserDto = Pick<
+  UserDoc,
+  '_id' | 'name' | 'email' | 'createdAt' | 'updatedAt'
+>;
 
 export const User = model<UserType>('User', userSchema);
