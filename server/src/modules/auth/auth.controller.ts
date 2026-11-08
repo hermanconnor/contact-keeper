@@ -1,8 +1,13 @@
 import type { Request, Response } from 'express';
-import type { RegisterRequest } from './auth.types.js';
+import type { LoginRequest, RegisterRequest } from './auth.types.js';
 import { User } from '@/models/user.model.js';
 import { AppError } from '@/utils/AppError.js';
-import { hashPassword } from '@/utils/password.js';
+import {
+  hashPassword,
+  needsRehash,
+  verifyDummyPassword,
+  verifyPassword,
+} from '@/utils/password.js';
 import { createAuthTokens } from './auth.service.js';
 import { sendAuthResponse } from './auth.utils.js';
 import { toPublicUser } from './auth.mapper.js';
@@ -33,8 +38,33 @@ export const registerUser = async (
   });
 };
 
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  res.send('LOGS IN A USER');
+export const loginUser = async (
+  req: LoginRequest,
+  res: Response,
+): Promise<void> => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email }).select('+password');
+
+  const valid = user
+    ? await verifyPassword(user.password, password)
+    : await verifyDummyPassword(password);
+
+  if (!user || !valid) throw new AppError('Invalid credentials', 401);
+
+  if (needsRehash(user.password)) {
+    await User.updateOne(
+      { _id: user._id },
+      { password: await hashPassword(password) },
+    );
+  }
+
+  const { accessToken, refreshToken, sessionExpiresAt } =
+    await createAuthTokens(user._id);
+
+  sendAuthResponse(res, 200, accessToken, refreshToken, sessionExpiresAt, {
+    user: toPublicUser(user),
+  });
 };
 
 export const logoutUser = async (
