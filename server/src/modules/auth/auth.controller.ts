@@ -8,9 +8,19 @@ import {
   verifyDummyPassword,
   verifyPassword,
 } from '@/utils/password.js';
-import { createAuthTokens } from './auth.service.js';
+import {
+  createAuthTokens,
+  refreshAuthTokens,
+  revokeAuthTokens,
+} from './auth.service.js';
 import { sendAuthResponse } from './auth.utils.js';
 import { toPublicUser } from './auth.mapper.js';
+import {
+  clearRefreshCookie,
+  getRefreshCookie,
+  setRefreshCookie,
+} from '@/utils/cookies.js';
+import { ACCESS_TTL_SECONDS } from '@/utils/tokens.js';
 
 export const registerUser = async (
   req: RegisterRequest,
@@ -71,12 +81,52 @@ export const logoutUser = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  res.send('LOG OUT USER');
+  const token = getRefreshCookie(req);
+
+  if (token) {
+    await revokeAuthTokens(token);
+  }
+
+  clearRefreshCookie(res);
+
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
-export const refreshAccessToken = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  res.send('REFRESH TOKENS');
+export const refresh = async (req: Request, res: Response): Promise<void> => {
+  const token = getRefreshCookie(req);
+
+  if (!token) throw new AppError('Refresh token missing', 401);
+
+  try {
+    const result = await refreshAuthTokens(token);
+
+    res.set({ 'Cache-Control': 'no-store', Pragma: 'no-cache' });
+
+    if (result.kind === 'rotated') {
+      setRefreshCookie(res, result.refreshToken, result.sessionExpiresAt);
+
+      res.status(200).json({
+        success: true,
+        tokenType: 'Bearer',
+        expiresIn: ACCESS_TTL_SECONDS,
+        accessToken: result.accessToken,
+        message: 'Token refreshed successfully',
+      });
+    } else {
+      // Parallel request delivered the new refresh token; keep existing cookie
+      res.status(200).json({
+        success: true,
+        tokenType: 'Bearer',
+        expiresIn: ACCESS_TTL_SECONDS,
+        accessToken: result.accessToken,
+        message: 'Token refreshed successfully',
+      });
+    }
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === 401) {
+      clearRefreshCookie(res);
+    }
+
+    throw error;
+  }
 };
