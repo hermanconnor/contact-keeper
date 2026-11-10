@@ -1,14 +1,30 @@
 import { Router } from 'express';
 import {
-  deleteUser,
+  changeMyPassword,
+  deleteMe,
   getMe,
-  updateUser,
+  updateMe,
 } from '@/modules/users/user.controller.js';
+import { protect } from '@/middleware/auth.js';
+import { validate } from '@/middleware/validate.js';
+import {
+  changePasswordSchema,
+  deleteAccountSchema,
+  updateProfileSchema,
+} from '@/schemas/user.schemas.js';
 
 const router = Router();
 
-router.get('/', getMe);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+// Self-service only: every route acts on the authenticated user (taken from the access
+// token), so there is no :id parameter to tamper with.
+router.use(protect);
+
+router
+  .route('/me')
+  .get(getMe)
+  .patch(validate(updateProfileSchema), updateMe)
+  .delete(validate(deleteAccountSchema), deleteMe);
+
+router.put('/me/password', validate(changePasswordSchema), changeMyPassword);
 
 export default router;
