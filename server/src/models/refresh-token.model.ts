@@ -1,7 +1,6 @@
 import {
   model,
   Schema,
-  Types,
   type HydratedDocument,
   type InferSchemaType,
 } from 'mongoose';

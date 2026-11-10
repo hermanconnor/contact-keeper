@@ -1,4 +1,9 @@
-import { model, Schema, Types, type InferSchemaType } from 'mongoose';
+import {
+  model,
+  Schema,
+  type HydratedDocument,
+  type InferSchemaType,
+} from 'mongoose';
 
 const contactSchema = new Schema(
   {
@@ -36,6 +41,6 @@ const contactSchema = new Schema(
 );
 
 export type ContactType = InferSchemaType<typeof contactSchema>;
-export type ContactDocument = ContactType & { _id: Types.ObjectId };
+export type ContactDoc = HydratedDocument<ContactType>;
 
 export const Contact = model<ContactType>('Contact', contactSchema);

@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 import type { z } from 'zod';
-import type { loginSchema, registerSchema } from '@/schemas/auth.schema.js';
+import type { loginSchema, registerSchema } from '@/schemas/auth.schemas.js';
 
 export type RegisterBody = z.output<typeof registerSchema>['body'];
 export type LoginBody = z.output<typeof loginSchema>['body'];

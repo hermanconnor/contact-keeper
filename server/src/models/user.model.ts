@@ -1,7 +1,6 @@
 import {
   model,
   Schema,
-  Types,
   type HydratedDocument,
   type InferSchemaType,
 } from 'mongoose';
@@ -12,7 +11,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Name is required'],
       minlength: [2, 'Name must be at least 2 characters long'],
-      maxlength: [70, 'Name must be fewer than 70 characters long'],
+      maxlength: [100, 'Name must be fewer than 100 characters long'],
       trim: true,
     },
     email: {
@@ -26,10 +25,6 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      select: false,
-    },
-    refreshTokenHash: {
-      type: String,
       select: false,
     },
   },
