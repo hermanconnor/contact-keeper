@@ -1,4 +1,4 @@
-import type { Types, QueryFilter } from 'mongoose';
+import type { QueryFilter } from 'mongoose';
 import {
   Contact,
   type ContactDoc,
@@ -38,7 +38,7 @@ export interface ContactPage {
 }
 
 export async function listContacts(
-  userId: Types.ObjectId | string,
+  userId: string,
   query: ListContactsQuery,
 ): Promise<ContactPage> {
   const { page, limit, type, search, sort } = query;
@@ -71,7 +71,7 @@ export async function listContacts(
 }
 
 export function createContact(
-  userId: Types.ObjectId | string,
+  userId: string,
   input: CreateContactInput,
 ): Promise<ContactDoc> {
   return Contact.create({
@@ -87,8 +87,8 @@ export function createContact(
 // from one that doesn't exist: both are a 404 and nothing about other users leaks.
 
 export async function getContact(
-  userId: Types.ObjectId | string,
-  contactId: Types.ObjectId | string,
+  userId: string,
+  contactId: string,
 ): Promise<ContactLean> {
   const contact = await Contact.findOne({
     _id: contactId,
@@ -101,8 +101,8 @@ export async function getContact(
 }
 
 export async function updateContact(
-  userId: Types.ObjectId | string,
-  contactId: Types.ObjectId | string,
+  userId: string,
+  contactId: string,
   input: UpdateContactInput,
 ): Promise<ContactLean> {
   const $set: Record<string, unknown> = {};
@@ -131,8 +131,8 @@ export async function updateContact(
 }
 
 export async function deleteContact(
-  userId: Types.ObjectId | string,
-  contactId: Types.ObjectId | string,
+  userId: string,
+  contactId: string,
 ): Promise<void> {
   const { deletedCount } = await Contact.deleteOne({
     _id: contactId,
