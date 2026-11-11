@@ -43,4 +43,16 @@ const contactSchema = new Schema(
 export type ContactType = InferSchemaType<typeof contactSchema>;
 export type ContactDoc = HydratedDocument<ContactType>;
 
+export type PublicContactDto = Pick<
+  ContactDoc,
+  | '_id'
+  | 'name'
+  | 'email'
+  | 'phone'
+  | 'type'
+  | 'date'
+  | 'createdAt'
+  | 'updatedAt'
+>;
+
 export const Contact = model<ContactType>('Contact', contactSchema);
