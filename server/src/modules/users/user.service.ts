@@ -1,47 +1,36 @@
-import type { Types } from 'mongoose';
-import { User, type UserDoc } from '@/models/user.model.js';
-import { AppError } from '@/utils/AppError.js';
-import { RefreshToken } from '@/models/refresh-token.model.js';
 import { Contact } from '@/models/contact.model.js';
-import { hashPassword, verifyPassword } from '@/utils/password.js';
+import { User, type UserLean } from '@/models/user.model.js';
 import type { UpdateProfileInput } from '@/schemas/user.schemas.js';
+import { AppError } from '@/utils/AppError.js';
+import { hashPassword, verifyPassword } from '@/utils/password.js';
+import { revokeAllSessions } from '../auth/auth.service.js';
 
 // `protect` only verifies the JWT and never touches the database, so an access token
 // can outlive its account by up to ACCESS_TTL_SECONDS. A missing user is therefore
 // "your credentials are no longer valid" (401), not "resource not found" (404).
 const notAuthorized = () => new AppError('Not authorized', 401);
 
-export async function getUserById(
-  userId: Types.ObjectId | string,
-): Promise<UserDoc> {
-  const user = await User.findById(userId);
+export async function getUserById(userId: string): Promise<UserLean> {
+  const user = await User.findById(userId).lean<UserLean>();
 
   if (!user) throw notAuthorized();
 
   return user;
 }
 
+/**
+ * Updates the caller's own profile. A taken email surfaces as a Mongo duplicate-key
+ * error, which `errorHandler` already turns into a 409.
+ */
 export async function updateUser(
-  userId: Types.ObjectId | string,
+  userId: string,
   input: UpdateProfileInput,
-): Promise<UserDoc> {
-  // If updating email, check uniqueness across other documents
-  if (input.email) {
-    const existing = await User.exists({
-      email: input.email,
-      _id: { $ne: userId },
-    });
-
-    if (existing) {
-      throw new AppError('User already exists with this email', 409);
-    }
-  }
-
+): Promise<UserLean> {
   const user = await User.findByIdAndUpdate(
     userId,
     { $set: input },
-    { new: true, runValidators: true },
-  );
+    { returnDocument: 'after', runValidators: true },
+  ).lean<UserLean>();
 
   if (!user) throw notAuthorized();
 
@@ -53,15 +42,14 @@ export async function updateUser(
  * start a fresh session afterwards (see the controller) so the current device stays logged in.
  */
 export async function changePassword(
-  userId: Types.ObjectId | string,
+  userId: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  const user = await User.findById(userId).select('+password');
+  const user = await User.findById(userId).select('+password').lean<UserLean>();
 
   if (!user) throw notAuthorized();
 
-  // 400, not 401: the frontend treats 401 as "access token expired" and tries to refresh.
   if (!(await verifyPassword(user.password, currentPassword))) {
     throw new AppError('Current password is incorrect', 400);
   }
@@ -73,7 +61,7 @@ export async function changePassword(
 
   // After the password is saved, so a failure here can't leave the old password in place
   // with the sessions already gone. Worst case the sessions survive until a retry.
-  await RefreshToken.deleteMany({ userId: user._id });
+  await revokeAllSessions(user._id);
 }
 
 /**
@@ -82,10 +70,10 @@ export async function changePassword(
  * exists and the request can simply be retried.
  */
 export async function deleteUser(
-  userId: Types.ObjectId | string,
+  userId: string,
   password: string,
 ): Promise<void> {
-  const user = await User.findById(userId).select('+password');
+  const user = await User.findById(userId).select('+password').lean<UserLean>();
 
   if (!user) throw notAuthorized();
 
@@ -93,7 +81,7 @@ export async function deleteUser(
     throw new AppError('Password is incorrect', 400);
   }
 
-  await RefreshToken.deleteMany({ userId: user._id });
+  await revokeAllSessions(user._id);
   await Contact.deleteMany({ user: user._id });
   await User.deleteOne({ _id: user._id });
 }

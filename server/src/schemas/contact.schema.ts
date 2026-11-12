@@ -1,19 +1,9 @@
 import { z } from 'zod';
+import { emailSchema } from './common.schemas.js';
 
 const id = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid contact id');
 
-const name = z
-  .string()
-  .trim()
-  .min(1, 'Name is required')
-  .max(100, 'Name must be fewer than 100 characters long');
-
-const email = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .max(254, 'Email is too long')
-  .pipe(z.email('Please provide a valid email address'));
+const name = z.string().trim().min(1).max(100);
 
 const phone = z
   .string()
@@ -22,7 +12,12 @@ const phone = z
 
 const type = z.enum(['personal', 'professional']);
 
-const SORT_OPTIONS = ['name', '-name', 'createdAt', '-createdAt'] as const;
+export const SORT_OPTIONS = [
+  'name',
+  '-name',
+  'createdAt',
+  '-createdAt',
+] as const;
 
 export const contactIdSchema = z.object({
   params: z.object({ id }),
@@ -41,7 +36,7 @@ export const listContactsSchema = z.object({
 export const createContactSchema = z.object({
   body: z.object({
     name,
-    email: email.optional(),
+    email: emailSchema.optional(),
     phone: phone.optional(),
     type: type.optional(),
   }),
@@ -53,16 +48,16 @@ export const updateContactSchema = z.object({
   body: z
     .object({
       name: name.optional(),
-      email: email.nullable().optional(),
+      email: emailSchema.nullable().optional(),
       phone: phone.nullable().optional(),
       type: type.optional(),
     })
-    .refine((data) => Object.keys(data).length > 0, {
+    .refine((body) => Object.keys(body).length > 0, {
       message: 'Provide at least one field to update',
     }),
 });
 
-export type ContactIdParams = z.output<typeof contactIdSchema>['params'];
-export type ListContactsQuery = z.output<typeof listContactsSchema>['query'];
-export type CreateContactInput = z.output<typeof createContactSchema>['body'];
-export type UpdateContactInput = z.output<typeof updateContactSchema>['body'];
+export type ContactIdParams = z.infer<typeof contactIdSchema>['params'];
+export type ListContactsQuery = z.infer<typeof listContactsSchema>['query'];
+export type CreateContactInput = z.infer<typeof createContactSchema>['body'];
+export type UpdateContactInput = z.infer<typeof updateContactSchema>['body'];

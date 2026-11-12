@@ -3,6 +3,7 @@ import {
   Schema,
   type HydratedDocument,
   type InferSchemaType,
+  type Types,
 } from 'mongoose';
 
 const userSchema = new Schema(
@@ -33,6 +34,9 @@ const userSchema = new Schema(
 
 export type UserType = InferSchemaType<typeof userSchema>;
 export type UserDoc = HydratedDocument<UserType>;
+
+/** Shape returned by `.lean()`: a plain object, not a hydrated document. */
+export type UserLean = UserType & { _id: Types.ObjectId };
 
 export type PublicUserDto = Pick<
   UserDoc,

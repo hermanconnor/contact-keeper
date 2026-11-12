@@ -3,6 +3,7 @@ import {
   Schema,
   type HydratedDocument,
   type InferSchemaType,
+  type Types,
 } from 'mongoose';
 
 const refreshTokenSchema = new Schema(
@@ -52,6 +53,9 @@ refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export type RefreshTokenType = InferSchemaType<typeof refreshTokenSchema>;
 export type TokenDoc = HydratedDocument<RefreshTokenType>;
+
+/** Shape returned by `.lean()`: a plain object, not a hydrated document. */
+export type TokenLean = RefreshTokenType & { _id: Types.ObjectId };
 
 export const RefreshToken = model<RefreshTokenType>(
   'RefreshToken',

@@ -1,12 +1,12 @@
 import { Router } from 'express';
+import { protect } from '@/middleware/auth.js';
+import { validate } from '@/middleware/validate.js';
 import {
   changeMyPassword,
   deleteMe,
   getMe,
   updateMe,
-} from '@/modules/users/user.controller.js';
-import { protect } from '@/middleware/auth.js';
-import { validate } from '@/middleware/validate.js';
+} from './user.controller.js';
 import {
   changePasswordSchema,
   deleteAccountSchema,

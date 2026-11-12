@@ -1,43 +1,27 @@
 import { z } from 'zod';
-
-const name = z
-  .string()
-  .trim()
-  .min(2, 'Name must be at least 2 characters long')
-  .max(100, 'Name must be fewer than 100 characters long');
-
-const email = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .max(254, 'Email is too long')
-  .pipe(z.email('Please provide a valid email address'));
-
-const newPassword = z
-  .string()
-  .min(6, 'New password must be at least 6 characters long')
-  .max(128, 'Password is too long');
-
-const passwordVerification = z.string().min(1, 'Password is required').max(128);
+import { emailSchema, nameSchema, passwordSchema } from './common.schemas.js';
 
 export const updateProfileSchema = z.object({
   body: z
     .object({
-      name: name.optional(),
-      email: email.optional(),
+      name: nameSchema.optional(),
+      email: emailSchema.optional(),
     })
-    .refine((data) => Object.keys(data).length > 0, {
-      error: 'Provide at least one field to update',
+    .refine((body) => Object.keys(body).length > 0, {
+      message: 'Provide at least one field to update',
     }),
 });
 
 export const changePasswordSchema = z.object({
   body: z
     .object({
-      currentPassword: passwordVerification,
-      newPassword,
+      currentPassword: z
+        .string()
+        .min(1, 'Current password is required')
+        .max(128),
+      newPassword: passwordSchema,
     })
-    .refine((data) => data.currentPassword !== data.newPassword, {
+    .refine((body) => body.currentPassword !== body.newPassword, {
       message: 'New password must be different from the current password',
       path: ['newPassword'],
     }),
@@ -45,7 +29,7 @@ export const changePasswordSchema = z.object({
 
 export const deleteAccountSchema = z.object({
   body: z.object({
-    password: passwordVerification,
+    password: z.string().min(1, 'Password is required').max(128),
   }),
 });
 
