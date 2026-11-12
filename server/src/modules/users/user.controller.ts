@@ -29,9 +29,7 @@ export const updateMe = async (
 ): Promise<void> => {
   const userId = requireUserId(req);
 
-  const { name, email } = req.body;
-
-  const user = await updateUser(userId, { name, email });
+  const user = await updateUser(userId, req.body);
 
   res.status(200).json({ success: true, user: toPublicUser(user) });
 };

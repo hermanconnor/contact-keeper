@@ -15,7 +15,7 @@ const email = z
 
 const newPassword = z
   .string()
-  .min(6, 'Password must be at least 6 characters long')
+  .min(6, 'New password must be at least 6 characters long')
   .max(128, 'Password is too long');
 
 const passwordVerification = z.string().min(1, 'Password is required').max(128);
@@ -48,3 +48,7 @@ export const deleteAccountSchema = z.object({
     password: passwordVerification,
   }),
 });
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>['body'];
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>['body'];
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>['body'];

@@ -33,3 +33,6 @@ export const loginSchema = z.object({
     password: z.string().min(1, 'Password is required').max(128),
   }),
 });
+
+export type RegisterInput = z.output<typeof registerSchema>['body'];
+export type LoginInput = z.output<typeof loginSchema>['body'];

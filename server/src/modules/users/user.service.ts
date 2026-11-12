@@ -3,8 +3,8 @@ import { User, type UserDoc } from '@/models/user.model.js';
 import { AppError } from '@/utils/AppError.js';
 import { RefreshToken } from '@/models/refresh-token.model.js';
 import { Contact } from '@/models/contact.model.js';
-import type { UpdateProfileInput } from './user.types.js';
 import { hashPassword, verifyPassword } from '@/utils/password.js';
+import type { UpdateProfileInput } from '@/schemas/user.schemas.js';
 
 // `protect` only verifies the JWT and never touches the database, so an access token
 // can outlive its account by up to ACCESS_TTL_SECONDS. A missing user is therefore

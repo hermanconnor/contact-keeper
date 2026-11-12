@@ -3,7 +3,7 @@ import requestLogger from './middleware/requestLogger.js';
 import healthRoutes from '@/modules/health/health.routes.js';
 import authRoutes from '@/modules/auth/auth.routes.js';
 import userRoutes from '@/modules/users/user.routes.js';
-import contactRoutes from '@/modules/contact/contact.routes.js';
+import contactRoutes from '@/modules/contacts/contact.routes.js';
 import { errorHandler } from '@/middleware/errorHandler.js';
 import { notFoundHandler } from '@/middleware/notFoundHandler.js';
 
