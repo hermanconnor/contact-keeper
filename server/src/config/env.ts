@@ -13,23 +13,26 @@ const pinoLevels = [
 
 const envSchema = z
   .object({
+    // Defaults to production so a deploy that forgets NODE_ENV fails safe (no stack traces
+    // in error responses). Set NODE_ENV=development in your local .env.
     NODE_ENV: z
       .enum(['development', 'production', 'test'])
-      .default('development'),
+      .default('production'),
 
     PORT: z.coerce.number().int().positive().default(5000),
 
     DATABASE_URL: z
       .string()
-      .min(1, 'Must be a valid database connection string'),
+      .regex(
+        /^mongodb(\+srv)?:\/\//,
+        'DATABASE_URL must be a MongoDB connection string (mongodb:// or mongodb+srv://)',
+      ),
 
+    // HS256 wants a key of at least 256 bits. Generate one with:
+    //   node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
     ACCESS_TOKEN_SECRET: z
       .string()
-      .min(10, 'ACCESS_TOKEN_SECRET must be at least 10 characters'),
-
-    REFRESH_TOKEN_SECRET: z
-      .string()
-      .min(10, 'REFRESH_TOKEN_SECRET must be at least 10 characters'),
+      .min(32, 'ACCESS_TOKEN_SECRET must be at least 32 characters'),
 
     SESSION_LIFETIME_DAYS: z.coerce.number().int().min(1).max(365).default(7),
 
@@ -47,10 +50,10 @@ const envSchema = z
 const result = envSchema.safeParse(process.env);
 
 if (!result.success) {
-  const flattened = z.flattenError(result.error);
+  const pretty = z.prettifyError(result.error);
 
   console.error('❌ Invalid or missing environment variables:');
-  console.error(flattened.fieldErrors);
+  console.error(pretty);
   process.exit(1);
 }
 
