@@ -6,6 +6,7 @@ import userRoutes from '@/modules/users/user.routes.js';
 import contactRoutes from '@/modules/contacts/contact.routes.js';
 import { errorHandler } from '@/middleware/errorHandler.js';
 import { notFoundHandler } from '@/middleware/notFoundHandler.js';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 
@@ -14,6 +15,8 @@ app.use(requestLogger);
 
 // MIDDLEWARE
 app.use(express.json());
+
+app.use(cookieParser());
 
 // ROUTES
 app.use('/api/v1/health', healthRoutes);

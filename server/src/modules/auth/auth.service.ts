@@ -46,6 +46,8 @@ export async function signUp({
   email,
   password,
 }: RegisterInput): Promise<AuthTokensResult & { user: UserDoc }> {
+  // Cheap pre-check so a duplicate doesn't pay for an Argon2 hash. A concurrent duplicate
+  // that slips past it is stopped by the unique index (errorHandler maps E11000 to a 409).
   if (await User.exists({ email })) {
     throw new AppError('User already exists with this email', 409);
   }
@@ -182,7 +184,6 @@ export async function refreshAuthTokens(
     } catch {
       // Best effort: nobody ever received that token, and it expires on its own.
     }
-
     const latest = await RefreshToken.findById(current._id).lean<TokenLean>();
     if (!latest) throw new AppError('Invalid or expired refresh token', 401);
 
@@ -262,12 +263,16 @@ async function familyIsActive(familyId: string): Promise<boolean> {
 function revokeFamily(familyId: string, at: Date) {
   const purgeAt = new Date(at.getTime() + RETIRED_RETENTION_MS);
 
-  return RefreshToken.updateMany({ familyId, revokedAt: null }, [
-    {
-      $set: {
-        revokedAt: at,
-        expiresAt: { $min: ['$expiresAt', purgeAt] },
+  return RefreshToken.updateMany(
+    { familyId, revokedAt: null },
+    [
+      {
+        $set: {
+          revokedAt: at,
+          expiresAt: { $min: ['$expiresAt', purgeAt] },
+        },
       },
-    },
-  ]);
+    ],
+    { updatePipeline: true }, // Mongoose refuses an array update without this opt-in
+  );
 }
