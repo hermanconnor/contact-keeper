@@ -11,6 +11,15 @@ const pinoLevels = [
   'silent',
 ] as const;
 
+// An origin is scheme + host (+ port) with no path or trailing slash, exactly as browsers send it.
+const isOrigin = (value: string): boolean => {
+  try {
+    return new URL(value).origin === value;
+  } catch {
+    return false;
+  }
+};
+
 const envSchema = z
   .object({
     // Defaults to production so a deploy that forgets NODE_ENV fails safe (no stack traces
@@ -37,6 +46,31 @@ const envSchema = z
     SESSION_LIFETIME_DAYS: z.coerce.number().int().min(1).max(365).default(7),
 
     BASE_URL: z.string().default('http://localhost:5000'),
+
+    // Comma-separated browser origins allowed to call the API and to send the refresh cookie, e.g.
+    //   CORS_ORIGINS=https://my-app.netlify.app,http://localhost:5173
+    // Empty (the default) means no cross-origin browser access at all.
+    CORS_ORIGINS: z
+      .string()
+      .default('')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim().replace(/\/+$/, ''))
+          .filter(Boolean),
+      )
+      .refine((origins) => origins.every(isOrigin), {
+        error:
+          'CORS_ORIGINS must be comma-separated origins like https://example.com (no path)',
+      }),
+
+    // Serve Swagger UI at /docs. Unset means: on outside production, off in production.
+    API_DOCS_ENABLED: z.stringbool().optional(),
+
+    // How many reverse proxies sit in front of the app (0 locally). It decides which
+    // X-Forwarded-For entry becomes req.ip, which rate limiting keys on: too low and every
+    // user shares the proxy's IP, too high and clients can spoof theirs.
+    TRUST_PROXY: z.coerce.number().int().min(0).max(10).default(0),
 
     LOG_LEVEL: z
       .preprocess(
