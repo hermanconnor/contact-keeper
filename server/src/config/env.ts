@@ -45,8 +45,6 @@ const envSchema = z
 
     SESSION_LIFETIME_DAYS: z.coerce.number().int().min(1).max(365).default(7),
 
-    BASE_URL: z.string().default('http://localhost:5000'),
-
     // Comma-separated browser origins allowed to call the API and to send the refresh cookie, e.g.
     //   CORS_ORIGINS=https://my-app.netlify.app,http://localhost:5173
     // Empty (the default) means no cross-origin browser access at all.
