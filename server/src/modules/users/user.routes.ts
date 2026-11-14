@@ -12,6 +12,7 @@ import {
   deleteAccountSchema,
   updateProfileSchema,
 } from '@/schemas/user.schemas.js';
+import { sensitiveLimiter } from '@/middleware/rateLimit.js';
 
 const router = Router();
 
@@ -23,8 +24,13 @@ router
   .route('/me')
   .get(getMe)
   .patch(validate(updateProfileSchema), updateMe)
-  .delete(validate(deleteAccountSchema), deleteMe);
+  .delete(sensitiveLimiter, validate(deleteAccountSchema), deleteMe);
 
-router.put('/me/password', validate(changePasswordSchema), changeMyPassword);
+router.put(
+  '/me/password',
+  sensitiveLimiter,
+  validate(changePasswordSchema),
+  changeMyPassword,
+);
 
 export default router;

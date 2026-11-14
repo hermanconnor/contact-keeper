@@ -2,16 +2,23 @@ import express, { type Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import { env } from '@/config/env.js';
-import requestLogger from './middleware/requestLogger.js';
+import requestLogger from '@/middleware/requestLogger.js';
+import { errorHandler } from '@/middleware/errorHandler.js';
+import { verifyOrigin } from '@/middleware/verifyOrigin.js';
+import { notFoundHandler } from '@/middleware/notFoundHandler.js';
 import healthRoutes from '@/modules/health/health.routes.js';
 import authRoutes from '@/modules/auth/auth.routes.js';
 import userRoutes from '@/modules/users/user.routes.js';
 import contactRoutes from '@/modules/contacts/contact.routes.js';
-import { errorHandler } from '@/middleware/errorHandler.js';
-import { notFoundHandler } from '@/middleware/notFoundHandler.js';
+import { apiLimiter } from './middleware/rateLimit.js';
 
 const app: Application = express();
+
+// Behind a reverse proxy (Render), req.ip is the proxy unless Express is told how many
+// hops to trust. Rate limiting and request logs both depend on it.
+app.set('trust proxy', env.TRUST_PROXY);
 
 // HTTP request logger
 app.use(requestLogger);
@@ -33,14 +40,28 @@ app.use(
   }),
 );
 
-// MIDDLEWARE
-app.use(express.json());
+app.use(compression());
 
-app.use(cookieParser());
+// Everything under /api is private, per-user data: never let a browser or shared cache keep it.
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
-// ROUTES
+// HEALTH: mounted before the rate limiter so platform probes are never throttled.
 app.use('/api/v1/health', healthRoutes);
 
+// RATE LIMITING: before body parsing, so floods are rejected without paying to parse them.
+app.use('/api', apiLimiter);
+
+// BODY PARSING: payloads here are tiny, so a small cap costs nothing and blocks oversized bodies.
+app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
+
+// CSRF: refuse state-changing requests from browser origins that aren't allowlisted.
+app.use('/api', verifyOrigin);
+
+// ROUTES
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/contacts', contactRoutes);
