@@ -13,6 +13,7 @@ import authRoutes from '@/modules/auth/auth.routes.js';
 import userRoutes from '@/modules/users/user.routes.js';
 import contactRoutes from '@/modules/contacts/contact.routes.js';
 import { apiLimiter } from './middleware/rateLimit.js';
+import { createDocsRouter } from '@/docs/docs.routes.js';
 
 const app: Application = express();
 
@@ -41,6 +42,12 @@ app.use(
 );
 
 app.use(compression());
+
+// API DOCS (Swagger UI): on by default outside production, opt in with API_DOCS_ENABLED=true.
+// Mounted outside /api so the large, cacheable Swagger UI assets skip no-store and the API limiter.
+if (env.API_DOCS_ENABLED ?? env.NODE_ENV !== 'production') {
+  app.use('/docs', createDocsRouter());
+}
 
 // Everything under /api is private, per-user data: never let a browser or shared cache keep it.
 app.use('/api', (_req, res, next) => {
