@@ -10,7 +10,9 @@
     "dev": "tsx watch ./src/server.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx src/seeds/seed.ts",
+    "seed:clear": "tsx src/seeds/seed.ts --clear"
   },
   "keywords": [],
   "type": "module",
