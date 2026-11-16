@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "react", "typescript", "oxc"],
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "ignorePatterns": ["dist", "node_modules"],
+  "categories": {
+    "correctness": "error"
+  },
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "rules": {
+    // React Hooks
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+
+    // React Fast Refresh
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
+
+    // ESLint recommended equivalents
+    "eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "none",
+        "caughtErrors": "none",
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "eslint/no-undef": "error",
+    "eslint/no-unreachable": "error",
+    "eslint/no-constant-condition": "error",
+
+    // TypeScript
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-unused-vars": "off",
+
+    // General code quality
+    "oxc/no-const-enum": "warn"
+  }
+}

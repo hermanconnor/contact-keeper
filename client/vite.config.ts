@@ -1,0 +1,21 @@
+import path from 'node:path';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
+import { defineConfig } from 'vite';
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+  resolve: {
+    alias: {
+      '@': path.resolve(import.meta.dirname, './src'),
+    },
+  },
+  server: {
+    // In dev the browser talks to Vite only, and Vite forwards /api to the backend. That
+    // keeps every request same-origin, so the refresh cookie just works without CORS.
+    proxy: {
+      '/api': { target: 'http://localhost:5000', changeOrigin: true },
+    },
+  },
+});
