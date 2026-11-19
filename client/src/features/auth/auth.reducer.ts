@@ -1,7 +1,5 @@
 import type { AuthAction, AuthState } from './auth.types';
 
-export const initialAuthState: AuthState = { status: 'loading', user: null };
-
 export function authReducer(_state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'RESTORE_STARTED':

@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const nameSchema = z
   .string()
   .trim()
-  .min(2, 'Name must be at least 2 characters long')
-  .max(100, 'Name must be fewer than 100 characters long');
+  .min(2, 'Name must be at least 2 characters')
+  .max(100, 'Name must be fewer than 100 characters');
 
 export const emailSchema = z
   .string()
@@ -15,5 +15,5 @@ export const emailSchema = z
 
 export const passwordSchema = z
   .string()
-  .min(8, 'Password must be at least 8 characters long')
+  .min(8, 'Password must be at least 8 characters')
   .max(128, 'Password is too long');
