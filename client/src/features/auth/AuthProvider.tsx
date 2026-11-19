@@ -39,7 +39,7 @@ async function restoreSession(): Promise<AuthAction> {
 
 export const initialAuthState: AuthState = { status: 'loading', user: null };
 
-export const AuthProvicer = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialAuthState);
   const [restoreAttempt, setRestoreAttempt] = useState<number>(0);
 
